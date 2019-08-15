@@ -1,6 +1,8 @@
 Debug/*
 .settings/*
 .*project
+!.cproject
+!.project
 /Debug/
 .vscode/*
 /Release/
