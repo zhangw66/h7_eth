@@ -57,7 +57,7 @@
   * @{
   */
 #define LAN8742_SW_RESET_TO    ((uint32_t)500U)
-#define LAN8742_INIT_TO        ((uint32_t)2000U)
+#define LAN8742_INIT_TO        ((uint32_t)1000U)
 #define LAN8742_MAX_DEV_ADDR   ((uint32_t)31U)
 /**
   * @}
@@ -142,7 +142,7 @@ int32_t  LAN8742_RegisterBusIO(lan8742_Object_t *pObj, lan8742_IOCtx_t *ioctx)
      {
        status = LAN8742_STATUS_ADDRESS_ERROR;
      }
-     
+#if 0
      /* if device address is matched */
      if(status == LAN8742_STATUS_OK)
      {
@@ -181,6 +181,7 @@ int32_t  LAN8742_RegisterBusIO(lan8742_Object_t *pObj, lan8742_IOCtx_t *ioctx)
          status = LAN8742_STATUS_WRITE_ERROR;
        }
      }
+#endif
    }
       
    if(status == LAN8742_STATUS_OK)
@@ -372,26 +373,29 @@ int32_t LAN8742_GetLinkState(lan8742_Object_t *pObj)
   }
   else /* Auto Nego enabled */
   {
-    if(pObj->IO.ReadReg(pObj->DevAddr, LAN8742_PHYSCSR, &readval) < 0)
+    if(pObj->IO.ReadReg(pObj->DevAddr, 1, &readval) < 0)
     {
       return LAN8742_STATUS_READ_ERROR;
     }
     
     /* Check if auto nego not done */
-    if((readval & LAN8742_PHYSCSR_AUTONEGO_DONE) == 0)
+    if((readval & 0x0020) == 0)
     {
       return LAN8742_STATUS_AUTONEGO_NOTDONE;
     }
-    
-    if((readval & LAN8742_PHYSCSR_HCDSPEEDMASK) == LAN8742_PHYSCSR_100BTX_FD)
+    if(pObj->IO.ReadReg(pObj->DevAddr, 0x1e, &readval) < 0)
+    {
+      return LAN8742_STATUS_READ_ERROR;
+    }
+    if((readval & 0x0007) == 0x6)
     {
       return LAN8742_STATUS_100MBITS_FULLDUPLEX;
     }
-    else if ((readval & LAN8742_PHYSCSR_HCDSPEEDMASK) == LAN8742_PHYSCSR_100BTX_HD)
+    else if ((readval & 0x0007) == 0x2)
     {
       return LAN8742_STATUS_100MBITS_HALFDUPLEX;
     }
-    else if ((readval & LAN8742_PHYSCSR_HCDSPEEDMASK) == LAN8742_PHYSCSR_10BT_FD)
+    else if ((readval & 0x0007) == 0x5)
     {
       return LAN8742_STATUS_10MBITS_FULLDUPLEX;
     }
